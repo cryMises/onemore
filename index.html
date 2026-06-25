@@ -1,0 +1,1584 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0D0B08">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="One More">
+<meta name="description" content="A push-your-luck adventure">
+<title>One More</title>
+<link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="images/site.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black:   #0D0B08;
+    --dark:    #1A1712;
+    --border:  #2E2A25;
+    --dim:     #3A3530;
+    --muted:   #6B6560;
+    --parch:   #F0EDE6;
+    --ghost:   #C8C4BC;
+    --gold:    #C9A84C;
+    --gold-d:  #8A6E2A;
+    --blood:   #8B1A1A;
+    --blood-l: #B52222;
+    --green:   #3A7A4A;
+    --pulse-speed: 2s;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--parch);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+  }
+
+  /* ── HEADER ─────────────────────────────────── */
+  .title-block {
+    text-align: center;
+    margin-bottom: 2.5rem;
+  }
+  .title-block h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.6rem, 5vw, 2.8rem);
+    font-weight: 700;
+    letter-spacing: .12em;
+    color: var(--gold);
+    text-shadow: 0 0 40px rgba(201,168,76,.25);
+  }
+  .title-block .sub {
+    font-size: .7rem;
+    letter-spacing: .25em;
+    color: var(--muted);
+    margin-top: .4rem;
+    text-transform: uppercase;
+  }
+
+  /* ── MAIN CARD ───────────────────────────────── */
+  .game-card {
+    width: 100%;
+    max-width: 420px;
+    background: var(--dark);
+    border: 1px solid var(--border);
+    padding: 1.75rem 1.5rem;
+    position: relative;
+  }
+  .game-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 1px solid transparent;
+    background: linear-gradient(135deg, rgba(201,168,76,.08), transparent 60%) border-box;
+    pointer-events: none;
+  }
+
+  /* ── STATS GRID ──────────────────────────────── */
+  .stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .55rem .75rem;
+    margin-bottom: 1.5rem;
+  }
+  .stat {
+    display: flex;
+    align-items: baseline;
+    gap: .45rem;
+  }
+  .stat .icon { font-size: .95rem; line-height: 1; }
+  .stat .label {
+    font-size: .6rem;
+    letter-spacing: .15em;
+    color: var(--muted);
+    text-transform: uppercase;
+    width: 32px;
+    flex-shrink: 0;
+  }
+  .stat .value {
+    font-size: .95rem;
+    font-weight: 500;
+    color: var(--parch);
+    transition: color .3s;
+  }
+  .stat.hp .value  { color: var(--blood-l); }
+  .stat.gold .value{ color: var(--gold); }
+
+  /* HP bar */
+  .hp-bar-wrap {
+    grid-column: 1 / -1;
+    height: 3px;
+    background: var(--border);
+    margin-bottom: .2rem;
+  }
+  .hp-bar {
+    height: 100%;
+    background: var(--blood-l);
+    transition: width .5s ease;
+  }
+
+  /* ── STEP COUNTER ────────────────────────────── */
+  .step-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: .6rem 0;
+    margin-bottom: 1.5rem;
+  }
+  .step-label {
+    font-size: .6rem;
+    letter-spacing: .2em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .step-value {
+    font-family: 'Cinzel', serif;
+    font-size: 1.1rem;
+    color: var(--ghost);
+  }
+
+  /* ── EVENT CARD ──────────────────────────────── */
+  .event-box {
+    border: 1px solid var(--border);
+    padding: 1.25rem;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 1.5rem;
+    position: relative;
+    background: var(--black);
+  }
+  .event-box.flash-good  { animation: flash-good .5s ease; }
+  .event-box.flash-bad   { animation: flash-bad .5s ease; }
+  .event-box.flash-legend{ animation: flash-legend .8s ease; }
+
+  @keyframes flash-good   { 0%,100%{background:var(--black)} 50%{background:rgba(58,122,74,.15)} }
+  @keyframes flash-bad    { 0%,100%{background:var(--black)} 50%{background:rgba(139,26,26,.18)} }
+  @keyframes flash-legend { 0%,100%{background:var(--black)} 30%,70%{background:rgba(201,168,76,.12)} }
+
+  .event-rarity {
+    font-size: .55rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .5rem;
+  }
+  .event-rarity.rare    { color: #7A9FBF; }
+  .event-rarity.legendary { color: var(--gold); }
+
+  .event-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1.15rem;
+    font-weight: 600;
+    color: var(--parch);
+    margin-bottom: .7rem;
+    line-height: 1.3;
+  }
+  .event-effect {
+    font-size: .85rem;
+    font-weight: 500;
+    letter-spacing: .05em;
+  }
+  .effect-good   { color: #6FCF97; }
+  .effect-bad    { color: var(--blood-l); }
+  .effect-neutral{ color: var(--ghost); }
+
+  .event-desc {
+    font-size: .72rem;
+    color: var(--muted);
+    margin-top: .55rem;
+    line-height: 1.55;
+    font-style: italic;
+  }
+
+  /* ── DEATH / WIN SCREENS ─────────────────────── */
+  .event-box.dead .event-title { color: var(--blood-l); font-size: 1.4rem; }
+  .event-box.win  .event-title { color: var(--gold); font-size: 1.25rem; }
+
+  /* ── BUTTONS ─────────────────────────────────── */
+  .buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: .75rem;
+  }
+  .btn {
+    font-family: 'Cinzel', serif;
+    font-size: .8rem;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    padding: .85rem .5rem;
+    border: 1px solid;
+    cursor: pointer;
+    transition: background .2s, color .2s, border-color .2s, transform .08s;
+    background: transparent;
+  }
+  .btn:active { transform: scale(.97); }
+
+  .btn-walk {
+    border-color: var(--gold-d);
+    color: var(--gold);
+    animation: heartbeat var(--pulse-speed) ease-in-out infinite;
+  }
+  .btn-walk:hover {
+    background: rgba(201,168,76,.1);
+    border-color: var(--gold);
+  }
+
+  @keyframes heartbeat {
+    0%,100% { box-shadow: 0 0 0 0 rgba(201,168,76,0); }
+    40%      { box-shadow: 0 0 0 4px rgba(201,168,76,.18); }
+    60%      { box-shadow: 0 0 0 2px rgba(201,168,76,.08); }
+  }
+
+  .btn-end {
+    border-color: var(--dim);
+    color: var(--muted);
+  }
+  .btn-end:hover {
+    border-color: var(--muted);
+    color: var(--ghost);
+  }
+
+  .btn-restart {
+    grid-column: 1 / -1;
+    border-color: var(--blood);
+    color: var(--blood-l);
+  }
+  .btn-restart:hover { background: rgba(139,26,26,.12); border-color: var(--blood-l); }
+
+  .btn:disabled { opacity: .3; cursor: not-allowed; }
+
+  .load-status {
+    text-align: center;
+    font-size: .7rem;
+    letter-spacing: .1em;
+    color: var(--gold-d);
+    padding: .5rem 0;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  .load-status.load-error {
+    color: #c0392b;
+    animation: none;
+  }
+
+  /* ── BOOSTED EFFECT INDICATOR ────────────────────── */
+  .effect-boosted {
+    font-size: .65rem;
+    color: var(--gold);
+    opacity: .75;
+    vertical-align: super;
+  }
+
+  /* ── RECENT LOG ──────────────────────────────── */
+  .log-section {
+    width: 100%;
+    max-width: 420px;
+    margin-top: 1.25rem;
+  }
+  .log-label {
+    font-size: .55rem;
+    letter-spacing: .25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: .6rem;
+    padding-bottom: .4rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .log-list {
+    display: flex;
+    flex-direction: column;
+    gap: .3rem;
+  }
+  .log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: .7rem;
+    color: var(--dim);
+    opacity: .6;
+    transition: opacity .3s;
+  }
+  .log-item:first-child { color: var(--ghost); opacity: 1; }
+  .log-item .log-effect { font-size: .65rem; }
+  .log-effect.g { color: #6FCF97; }
+  .log-effect.b { color: var(--blood-l); }
+
+  /* ── SHOP MODAL ──────────────────────────────── */
+  .shop-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(13,11,8,.88);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+  }
+  .shop-overlay.open { display: flex; }
+  .shop-modal {
+    background: var(--dark);
+    border: 1px solid var(--gold-d);
+    width: 100%;
+    max-width: 380px;
+    padding: 1.5rem 1.25rem;
+    position: relative;
+  }
+  .shop-modal::before {
+    content:'';
+    position:absolute;
+    inset:0;
+    background: linear-gradient(135deg, rgba(201,168,76,.06), transparent 55%) border-box;
+    pointer-events:none;
+  }
+  .shop-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--gold);
+    letter-spacing: .1em;
+    margin-bottom: .35rem;
+  }
+  .shop-sub {
+    font-size: .65rem;
+    color: var(--muted);
+    margin-bottom: 1.1rem;
+    font-style: italic;
+  }
+  .shop-gold-display {
+    font-size: .7rem;
+    color: var(--gold);
+    margin-bottom: 1rem;
+    letter-spacing: .08em;
+  }
+  .shop-items {
+    display: flex;
+    flex-direction: column;
+    gap: .5rem;
+    margin-bottom: 1rem;
+  }
+  .shop-item {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    border: 1px solid var(--border);
+    padding: .65rem .75rem;
+    cursor: pointer;
+    transition: border-color .15s, background .15s;
+    background: var(--black);
+  }
+  .shop-item:hover:not(.shop-item-disabled) {
+    border-color: var(--gold-d);
+    background: rgba(201,168,76,.05);
+  }
+  .shop-item.shop-item-disabled { opacity: .35; cursor: not-allowed; }
+  .shop-item-icon { font-size: 1.1rem; flex-shrink: 0; }
+  .shop-item-info { flex: 1; }
+  .shop-item-label {
+    font-family: 'Cinzel', serif;
+    font-size: .75rem;
+    color: var(--parch);
+    margin-bottom: .15rem;
+  }
+  .shop-item-desc { font-size: .6rem; color: var(--muted); }
+  .shop-item-cost {
+    font-size: .72rem;
+    color: var(--gold);
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+  .shop-item-cost.free { color: var(--muted); font-style: italic; }
+  .btn-shop-leave {
+    width: 100%;
+    border-color: var(--dim);
+    color: var(--muted);
+    font-size: .7rem;
+    padding: .6rem;
+  }
+  .btn-shop-leave:hover { border-color: var(--muted); color: var(--ghost); }
+
+  .records {
+    width: 100%;
+    max-width: 420px;
+    margin-top: 1.5rem;
+    border: 1px solid var(--border);
+    background: var(--dark);
+    padding: 1rem 1.25rem;
+  }
+  .records-label {
+    font-family: 'Cinzel', serif;
+    font-size: .7rem;
+    letter-spacing: .2em;
+    color: var(--gold-d);
+    text-transform: uppercase;
+    margin-bottom: .8rem;
+  }
+  .record-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: .68rem;
+    color: var(--muted);
+    padding: .3rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .record-row:last-child { border-bottom: none; }
+  .record-row .rval { color: var(--ghost); }
+  .record-row .rval.gold { color: var(--gold); }
+
+  /* ── AI SUMMARY PANEL ────────────────────────────── */
+  .summary-panel {
+    width: 100%;
+    max-width: 420px;
+    margin-top: 1.25rem;
+    border: 1px solid var(--border);
+    background: var(--dark);
+    padding: 1.1rem 1.25rem;
+    display: none;
+  }
+  .summary-panel.visible { display: block; }
+  .summary-label {
+    font-family: 'Cinzel', serif;
+    font-size: .7rem;
+    letter-spacing: .2em;
+    color: var(--gold-d);
+    text-transform: uppercase;
+    margin-bottom: .75rem;
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+  }
+  .summary-label .sum-dot {
+    width: 5px; height: 5px;
+    background: var(--gold-d);
+    border-radius: 50%;
+    animation: sum-pulse 1.2s ease-in-out infinite;
+    display: none;
+  }
+  .summary-label .sum-dot.active { display: inline-block; }
+  @keyframes sum-pulse {
+    0%,100% { opacity:.2; } 50% { opacity:1; }
+  }
+  .summary-text {
+    font-size: .75rem;
+    color: var(--ghost);
+    line-height: 1.7;
+    font-style: italic;
+    white-space: pre-wrap;
+  }
+  .summary-text.loading { color: var(--muted); font-style: normal; letter-spacing: .05em; }
+  .summary-text.error   { color: var(--blood-l); font-style: normal; }
+
+  /* ── NAME ENTRY ──────────────────────────────── */
+  .name-entry {
+    width: 100%;
+    max-width: 420px;
+    margin-top: 1.25rem;
+    border: 1px solid var(--border);
+    background: var(--dark);
+    padding: 1.1rem 1.25rem;
+    display: none;
+  }
+  .name-entry.visible { display: block; }
+  .name-entry-label {
+    font-family: 'Cinzel', serif;
+    font-size: .7rem;
+    letter-spacing: .2em;
+    color: var(--gold-d);
+    text-transform: uppercase;
+    margin-bottom: .75rem;
+  }
+  .name-row {
+    display: flex;
+    gap: .5rem;
+    align-items: stretch;
+  }
+  .name-input {
+    flex: 1;
+    background: var(--black);
+    border: 1px solid var(--border);
+    color: var(--parch);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: .8rem;
+    padding: .55rem .75rem;
+    letter-spacing: .05em;
+    outline: none;
+    transition: border-color .2s;
+    min-width: 0;
+  }
+  .name-input::placeholder { color: var(--muted); }
+  .name-input:focus { border-color: var(--gold-d); }
+  .btn-submit-score {
+    font-family: 'Cinzel', serif;
+    font-size: .7rem;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: .55rem .9rem;
+    border: 1px solid var(--gold-d);
+    color: var(--gold);
+    background: transparent;
+    cursor: pointer;
+    transition: background .2s, border-color .2s;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .btn-submit-score:hover { background: rgba(201,168,76,.1); border-color: var(--gold); }
+  .btn-submit-score:disabled { opacity: .35; cursor: not-allowed; }
+  .name-status {
+    font-size: .65rem;
+    color: var(--muted);
+    margin-top: .5rem;
+    min-height: 1em;
+    letter-spacing: .05em;
+  }
+  .name-status.ok    { color: #6FCF97; }
+  .name-status.error { color: var(--blood-l); }
+
+  /* ── LEADERBOARD ─────────────────────────────── */
+  .leaderboard {
+    width: 100%;
+    max-width: 420px;
+    margin-top: 1.5rem;
+    border: 1px solid var(--border);
+    background: var(--dark);
+    padding: 1rem 1.25rem;
+  }
+  .leaderboard-label {
+    font-family: 'Cinzel', serif;
+    font-size: .7rem;
+    letter-spacing: .2em;
+    color: var(--gold-d);
+    text-transform: uppercase;
+    margin-bottom: .8rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .lb-refresh {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: .75rem;
+    padding: 0;
+    transition: color .2s;
+    line-height: 1;
+  }
+  .lb-refresh:hover { color: var(--gold); }
+  .lb-row {
+    display: grid;
+    grid-template-columns: 1.2rem 1fr auto auto;
+    gap: .3rem .7rem;
+    align-items: center;
+    font-size: .68rem;
+    color: var(--muted);
+    padding: .3rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .lb-row:last-child { border-bottom: none; }
+  .lb-rank { color: var(--dim); font-size: .6rem; text-align: right; }
+  .lb-rank.top { color: var(--gold); }
+  .lb-name { color: var(--ghost); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .lb-steps { color: var(--muted); font-size: .62rem; white-space: nowrap; }
+  .lb-gold  { color: var(--gold); white-space: nowrap; text-align: right; }
+  .lb-outcome-survived { color: #6FCF97; font-size: .55rem; letter-spacing: .1em; }
+  .lb-outcome-died { color: var(--blood-l); font-size: .55rem; letter-spacing: .1em; }
+  .lb-empty { color: var(--muted); font-size: .7rem; font-style: italic; text-align: center; padding: .5rem 0; }
+  .lb-loading { color: var(--dim); font-size: .68rem; letter-spacing: .08em; padding: .3rem 0; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="title-block">
+  <h1>One More</h1>
+  <p class="sub">A push-your-luck adventure</p>
+</div>
+
+<div class="game-card" id="gameCard">
+  <!-- Stats -->
+  <div class="stats">
+    <div class="hp-bar-wrap" style="grid-column:1/-1">
+      <div class="hp-bar" id="hpBar" style="width:100%"></div>
+    </div>
+    <div class="stat hp">
+      <span class="icon">❤️</span>
+      <span class="label">HP</span>
+      <span class="value" id="statHp">100</span>
+    </div>
+    <div class="stat">
+      <span class="icon">⚔️</span>
+      <span class="label">STR</span>
+      <span class="value" id="statStr">5</span>
+    </div>
+    <div class="stat">
+      <span class="icon">🧠</span>
+      <span class="label">WIS</span>
+      <span class="value" id="statWis">5</span>
+    </div>
+    <div class="stat">
+      <span class="icon">🍀</span>
+      <span class="label">LUCK</span>
+      <span class="value" id="statLuck">5</span>
+    </div>
+    <div class="stat gold" style="grid-column:1/-1">
+      <span class="icon">💰</span>
+      <span class="label">GOLD</span>
+      <span class="value" id="statGold">0</span>
+    </div>
+  </div>
+
+  <!-- Step -->
+  <div class="step-row">
+    <span class="step-label">Step</span>
+    <span class="step-value" id="stepDisplay">0</span>
+  </div>
+
+  <!-- Event Box -->
+  <div class="event-box" id="eventBox">
+    <div class="event-rarity" id="eventRarity">—</div>
+    <div class="event-title" id="eventTitle">The road awaits.</div>
+    <div class="event-effect" id="eventEffect"></div>
+    <div class="event-desc" id="eventDesc">Every step may bring fortune. Or death.</div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="buttons" id="buttonRow" style="display:none">
+    <button class="btn btn-walk" id="btnWalk" onclick="walk()">Walk</button>
+    <button class="btn btn-end" id="btnEnd" onclick="endAdventure()">End Adventure</button>
+  </div>
+  <div id="loadStatus" class="load-status">Loading events…</div>
+</div>
+
+<!-- Log -->
+<div class="log-section">
+  <div class="log-label">Recent Events</div>
+  <div class="log-list" id="logList"></div>
+</div>
+
+<!-- AI Summary -->
+<div class="summary-panel" id="summaryPanel">
+  <div class="summary-label">
+    <span class="sum-dot" id="sumDot"></span>
+    <span id="sumLabel">Chronicle</span>
+  </div>
+  <div class="summary-text" id="summaryText"></div>
+</div>
+
+<!-- Name Entry (shown after run ends) -->
+<div class="name-entry" id="nameEntry">
+  <div class="name-entry-label">Submit Your Score</div>
+  <div class="name-row">
+    <input class="name-input" id="nameInput" type="text" maxlength="24" placeholder="Enter your name…" autocomplete="off" />
+    <button class="btn-submit-score" id="btnSubmitScore" onclick="submitScore()">Submit</button>
+  </div>
+  <div class="name-status" id="nameStatus"></div>
+</div>
+
+<!-- Records -->
+<div class="records" id="recordsBox">
+  <div class="records-label">Chronicles</div>
+  <div class="record-row"><span>Deepest</span><span class="rval" id="recDeep">—</span></div>
+  <div class="record-row"><span>Richest</span><span class="rval gold" id="recRich">—</span></div>
+  <div class="record-row"><span>Last Run</span><span class="rval" id="recLast">—</span></div>
+</div>
+
+<!-- Leaderboard -->
+<div class="leaderboard" id="leaderboardBox">
+  <div class="leaderboard-label">
+    <span>Hall of Fame</span>
+    <button class="lb-refresh" onclick="loadLeaderboard()" title="Refresh">↻</button>
+  </div>
+  <div id="leaderboardRows"><div class="lb-loading">Loading…</div></div>
+</div>
+<div class="shop-overlay" id="shopOverlay">
+  <div class="shop-modal">
+    <div class="shop-title">Wandering Alchemist</div>
+    <div class="shop-sub">"Gold for power, traveler. A fair trade."</div>
+    <div class="shop-gold-display" id="shopGoldDisplay">Your gold: 0</div>
+    <div class="shop-items" id="shopItems"></div>
+    <button class="btn btn-shop-leave" onclick="closeShopOverlay()">Leave</button>
+  </div>
+</div>
+
+<script>
+// ── EVENT DATABASE ──────────────────────────────────────────────────────────
+// Populated at boot from webhook; pickEvent() waits until ready
+let EVENTS = { common: [], rare: [], legendary: [] };
+let eventsReady = false;
+
+function normalizeEvent(raw) {
+  return {
+    title:    raw.title,
+    desc:     raw.desc,
+    rarity:   raw.rarity,
+    isDeath:  raw.isDeath ?? false,
+    isShop:   raw.isShop  ?? false,
+    effects: {
+      hp:       raw.hp       ?? 0,
+      gold:     raw.gold     ?? 0,
+      strength: raw.str      ?? raw.strength ?? 0,
+      wisdom:   raw.wis      ?? raw.wisdom   ?? 0,
+      luck:     raw.luk      ?? raw.luck     ?? 0,
+    }
+  };
+}
+
+async function loadEvents() {
+  const statusEl = document.getElementById('loadStatus');
+  try {
+    const res  = await fetch('https://erma-pseudosyphilitic-unwonderfully.ngrok-free.dev/webhook/getEvents/', {
+      headers: { 'ngrok-skip-browser-warning': '1' }
+    });
+    const data = await res.json();
+    const raw  = Array.isArray(data) ? data : data.events ?? [];
+
+    EVENTS.common    = raw.filter(e => e.rarity === 'common').map(normalizeEvent);
+    EVENTS.rare      = raw.filter(e => e.rarity === 'rare').map(normalizeEvent);
+    EVENTS.legendary = raw.filter(e => e.rarity === 'legendary').map(normalizeEvent);
+
+    eventsReady = true;
+    statusEl.style.display = 'none';
+    document.getElementById('buttonRow').style.display = '';
+  } catch (err) {
+    statusEl.textContent = '⚠ Failed to load events. Refresh to retry.';
+    statusEl.classList.add('load-error');
+    console.error('Event load failed:', err);
+  }
+}
+
+// ── DANGER TABLE ────────────────────────────────────────────────────────────
+// WIS  → shifts good% up (knowledge = preparation) + amplifies gold/wisdom gains
+// LUCK → directly shifts the random roll threshold (raw fortune) + amplifies luck-based effects, reduces bad magnitudes
+// STR  → on bad bucket, chance to "muscle through" and reroll as neutral + amplifies HP gains, reduces HP losses
+function getProbabilities(step) {
+  if (step <= 10)  return { good:.70, neutral:.20, bad:.10 };
+  if (step <= 20)  return { good:.50, neutral:.20, bad:.30 };
+  if (step <= 40)  return { good:.35, neutral:.15, bad:.50 };
+  return              { good:.20, neutral:.10, bad:.70 };
+}
+
+function getAdjustedRoll(step) {
+  const base = getProbabilities(step);
+  // WIS bonus: each point above 5 adds 0.6% to good, taken from bad
+  const wisBonus  = Math.min((state.wisdom  - 5) * 0.006, 0.12);
+  // LUCK bonus: each point above 5 adds 0.8% to good, taken from bad
+  const luckBonus = Math.min((state.luck    - 5) * 0.008, 0.16);
+  const totalBonus = wisBonus + luckBonus;
+  return {
+    good:    Math.min(base.good    + totalBonus, 0.92),
+    neutral: base.neutral,
+    bad:     Math.max(base.bad     - totalBonus, 0.04),
+  };
+}
+
+// ── STAT SCALING ─────────────────────────────────────────────────────────────
+// Applies stat multipliers to event effects at resolution time
+// STR: boosts positive HP gains, reduces HP losses
+// WIS: boosts gold gains, boosts wisdom stat gains
+// LUK: boosts luck stat gains, slightly reduces all negative effects
+function applyStatScaling(effects) {
+  if (!effects || Object.keys(effects).length === 0) return effects;
+  const scaled = { ...effects };
+
+  const strBonus = (state.strength - 5) * 0.04; // 4% per point above 5
+  const wisBonus = (state.wisdom   - 5) * 0.05; // 5% per point above 5
+  const lukBonus = (state.luck     - 5) * 0.03; // 3% per point above 5
+
+  // STR: amplify positive HP, dampen negative HP
+  if (scaled.hp) {
+    if (scaled.hp > 0) {
+      scaled.hp = Math.round(scaled.hp * (1 + Math.max(strBonus, 0)));
+    } else {
+      // negative hp: reduce damage. lukBonus also helps here
+      const mitigation = Math.min(Math.max(strBonus, 0) * 0.5 + Math.max(lukBonus, 0) * 0.5, 0.5);
+      scaled.hp = Math.round(scaled.hp * (1 - mitigation));
+    }
+  }
+
+  // WIS: amplify gold gains
+  if (scaled.gold && scaled.gold > 0) {
+    scaled.gold = Math.round(scaled.gold * (1 + Math.max(wisBonus, 0)));
+  }
+
+  // WIS: amplify wisdom gains
+  if (scaled.wisdom && scaled.wisdom > 0) {
+    scaled.wisdom = Math.round(scaled.wisdom * (1 + Math.max(wisBonus * 0.5, 0)));
+    scaled.wisdom = Math.max(scaled.wisdom, effects.wisdom); // at least base
+  }
+
+  // LUK: amplify luck gains
+  if (scaled.luck && scaled.luck > 0) {
+    scaled.luck = Math.round(scaled.luck * (1 + Math.max(lukBonus, 0)));
+    scaled.luck = Math.max(scaled.luck, effects.luck); // at least base
+  }
+
+  // STR: amplify strength gains
+  if (scaled.strength && scaled.strength > 0) {
+    const strSelfBonus = (state.strength - 5) * 0.025;
+    scaled.strength = Math.round(scaled.strength * (1 + Math.max(strSelfBonus, 0)));
+    scaled.strength = Math.max(scaled.strength, effects.strength);
+  }
+
+  return scaled;
+}
+
+// ── STATE ───────────────────────────────────────────────────────────────────
+let state = {};
+let log = [];
+let walkHistory = [];   // full event log for the current run
+let pendingShop = false;
+let records = JSON.parse(localStorage.getItem('om_records') || '{"deep":null,"rich":null,"last":null}');
+let gameOver = false;
+
+// Shop upgrade costs (gold)
+const SHOP = [
+  { stat:'hp',       label:'Fortify Body',   icon:'❤️', desc:'+20 Max HP, restore to new max', cost:30  },
+  { stat:'strength', label:'Temper Blade',   icon:'⚔️', desc:'+2 STR (less bad rerolls)',       cost:40  },
+  { stat:'wisdom',   label:'Study Grimoire', icon:'🧠', desc:'+2 WIS (better event odds)',       cost:40  },
+  { stat:'luck',     label:'Lucky Charm',    icon:'🍀', desc:'+2 LUCK (better event odds)',      cost:50  },
+  { stat:'gold',     label:'Loan Shark',     icon:'💰', desc:'+60 Gold. Consequences not guaranteed.', cost:0, free:true },
+];
+
+function initState() {
+  state = { hp:100, maxHp:100, strength:5, wisdom:5, luck:5, gold:0, step:0, lastShopMilestone:0 };
+  log = [];
+  walkHistory = [];
+  pendingShop = false;
+  gameOver = false;
+  // hide summary panel on new run
+  const sp = document.getElementById('summaryPanel');
+  if (sp) { sp.classList.remove('visible'); document.getElementById('summaryText').textContent = ''; }
+}
+
+// ── PICKING EVENTS ──────────────────────────────────────────────────────────
+function pickEvent(step) {
+  const probs = getAdjustedRoll(step);
+  let r = Math.random();
+
+  // STR: each point above 5 gives 0.7% chance to reroll a bad into neutral
+  if (r > probs.good + probs.neutral) {
+    const strSave = Math.min((state.strength - 5) * 0.007, 0.14);
+    if (Math.random() < strSave) {
+      // muscled through — treat as neutral
+      r = probs.good + 0.001;
+    }
+  }
+
+  let rarityPool;
+  if (r < probs.good) {
+    rarityPool = [
+      ...EVENTS.common.map(e=>({...e,rarity:'common'})),
+      ...EVENTS.rare.filter(e=>!e.isDeath).map(e=>({...e,rarity:'rare'})),
+    ];
+    // Shop appears guaranteed when gold crosses a new multiple-of-30 milestone
+    const currentMilestone = Math.floor(state.gold / 30);
+    const shopDue = currentMilestone > 0 && currentMilestone > (state.lastShopMilestone || 0);
+    if (shopDue && step >= 3 && !pendingShop) {
+      return { title:"Wandering Alchemist", rarity:'common', isShop:true,
+        desc:"A robed figure beckons. \"Gold for power, traveler. A fair trade.\"", effects:{} };
+    }
+    if (step > 10 && Math.random() < .08) rarityPool.push({...EVENTS.legendary[0], rarity:'legendary'});
+  } else if (r < probs.good + probs.neutral) {
+    rarityPool = [
+      ...EVENTS.common.map(e=>({...e,rarity:'common'})),
+    ];
+  } else {
+    const deathChance = step > 30 ? .35 : step > 20 ? .2 : step > 10 ? .1 : .04;
+    if (Math.random() < deathChance) {
+      const deaths = EVENTS.legendary.filter(e=>e.isDeath);
+      const ev = deaths[Math.floor(Math.random()*deaths.length)];
+      return {...ev, rarity:'legendary'};
+    }
+    rarityPool = [
+      ...EVENTS.rare.filter(e=>(e.effects?.hp||0)<0).map(e=>({...e,rarity:'rare'})),
+      ...EVENTS.common.filter(e=>(e.effects?.hp||0)<0).map(e=>({...e,rarity:'common'})),
+    ];
+    if (!rarityPool.length) rarityPool = EVENTS.common.map(e=>({...e,rarity:'common'}));
+  }
+
+  const picked = rarityPool[Math.floor(Math.random()*rarityPool.length)];
+  if (picked.isShop) pendingShop = true;
+  return picked;
+}
+
+// ── RENDERING ───────────────────────────────────────────────────────────────
+function renderStats() {
+  document.getElementById('statHp').textContent   = state.hp;
+  document.getElementById('statStr').textContent  = state.strength;
+  document.getElementById('statWis').textContent  = state.wisdom;
+  document.getElementById('statLuck').textContent = state.luck;
+  document.getElementById('statGold').textContent = state.gold;
+  document.getElementById('stepDisplay').textContent = state.step;
+  const hpPct = Math.max(0, (state.hp / state.maxHp) * 100);
+  document.getElementById('hpBar').style.width = hpPct + '%';
+
+  // pulse speed = faster when low hp
+  const speed = hpPct > 60 ? '2.5s' : hpPct > 30 ? '1.5s' : '.8s';
+  document.documentElement.style.setProperty('--pulse-speed', speed);
+}
+
+function renderEvent(ev, isDead=false, isWin=false, scaledEff=null) {
+  const box = document.getElementById('eventBox');
+  box.className = 'event-box';
+  if (isDead)  { box.classList.add('dead'); }
+  else if (isWin) { box.classList.add('win'); }
+  else {
+    // flash
+    const tone = ev.rarity === 'legendary' ? 'flash-legend' :
+                 hasGoodEffect(ev) ? 'flash-good' : 'flash-bad';
+    void box.offsetWidth; // reflow
+    box.classList.add(tone);
+  }
+
+  const rarityEl = document.getElementById('eventRarity');
+  rarityEl.textContent = isDead||isWin ? '' : (ev.rarity||'').toUpperCase();
+  rarityEl.className = 'event-rarity ' + (ev.rarity||'');
+
+  document.getElementById('eventTitle').textContent = ev.title || '';
+  document.getElementById('eventDesc').textContent  = ev.desc  || '';
+
+  const effectEl = document.getElementById('eventEffect');
+  if (isDead || isWin) { effectEl.textContent = ''; return; }
+
+  // Use scaled effects if provided, else raw
+  const displayEff = scaledEff || ev.effects || {};
+  const rawEff = ev.effects || {};
+
+  const parts = [];
+  if (displayEff.hp !== undefined && displayEff.hp !== 0) {
+    const boosted = scaledEff && displayEff.hp !== rawEff.hp;
+    parts.push({val: displayEff.hp, label: 'HP', boosted});
+  }
+  if (displayEff.gold !== undefined && displayEff.gold !== 0) {
+    const boosted = scaledEff && displayEff.gold !== rawEff.gold;
+    parts.push({val: displayEff.gold, label: 'Gold', boosted});
+  }
+  if (displayEff.strength !== undefined && displayEff.strength !== 0) {
+    const boosted = scaledEff && displayEff.strength !== rawEff.strength;
+    parts.push({val: displayEff.strength, label: 'STR', boosted});
+  }
+  if (displayEff.wisdom !== undefined && displayEff.wisdom !== 0) {
+    const boosted = scaledEff && displayEff.wisdom !== rawEff.wisdom;
+    parts.push({val: displayEff.wisdom, label: 'WIS', boosted});
+  }
+  if (displayEff.luck !== undefined && displayEff.luck !== 0) {
+    const boosted = scaledEff && displayEff.luck !== rawEff.luck;
+    parts.push({val: displayEff.luck, label: 'LUK', boosted});
+  }
+
+  effectEl.innerHTML = parts.map(p=>{
+    const sign = p.val > 0 ? '+' : '';
+    const cls  = p.val > 0 ? 'effect-good' : 'effect-bad';
+    const boostMark = p.boosted ? ' <span class="effect-boosted" title="Stat bonus applied">✦</span>' : '';
+    return `<span class="${cls}">${sign}${p.val} ${p.label}${boostMark}</span>`;
+  }).join('  ');
+  if (!parts.length) effectEl.innerHTML = '<span class="effect-neutral">No effect</span>';
+}
+
+function hasGoodEffect(ev) {
+  const e = ev.effects||{};
+  return (e.hp||0)>0 || (e.gold||0)>0 || (e.strength||0)>0 || (e.wisdom||0)>0 || (e.luck||0)>0;
+}
+
+function addLog(title, effects={}) {
+  const parts = [];
+  if (effects.hp)       parts.push({v:effects.hp,    l:'HP'});
+  if (effects.gold)     parts.push({v:effects.gold,  l:'Gold'});
+  if (effects.strength) parts.push({v:effects.strength,l:'STR'});
+  if (effects.wisdom)   parts.push({v:effects.wisdom,  l:'WIS'});
+  if (effects.luck)     parts.push({v:effects.luck,    l:'LUCK'});
+
+  log.unshift({ title, parts });
+  if (log.length > 6) log.pop();
+  renderLog();
+}
+
+function renderLog() {
+  const el = document.getElementById('logList');
+  el.innerHTML = log.map((e,i)=>{
+    const effs = e.parts.map(p=>{
+      const sign = p.v>0?'+':''; const cls=p.v>0?'g':'b';
+      return `<span class="log-effect ${cls}">${sign}${p.v}${p.l}</span>`;
+    }).join(' ');
+    return `<div class="log-item"><span>${e.title}</span>${effs}</div>`;
+  }).join('');
+}
+
+function renderRecords() {
+  document.getElementById('recDeep').textContent = records.deep ? `Step ${records.deep.step} — ${records.deep.outcome}` : '—';
+  document.getElementById('recRich').textContent = records.rich ? `${records.rich.gold} gold (Step ${records.rich.step})` : '—';
+  document.getElementById('recLast').textContent = records.last ? records.last : '—';
+}
+
+function saveRecords(outcome) {
+  if (!records.deep || state.step > records.deep.step) {
+    records.deep = { step: state.step, outcome };
+  }
+  if (!records.rich || state.gold > records.rich.gold) {
+    records.rich = { gold: state.gold, step: state.step };
+  }
+  records.last = `Step ${state.step} — ${state.gold}g — ${outcome}`;
+  try { localStorage.setItem('om_records', JSON.stringify(records)); } catch(e){}
+  renderRecords();
+}
+
+// ── WALK HISTORY ─────────────────────────────────────────────────────────────
+function pushHistory(ev, effectsApplied, statsAfter) {
+  walkHistory.push({
+    step:    state.step,
+    rarity:  ev.rarity  || 'common',
+    title:   ev.title   || '',
+    desc:    ev.desc    || '',
+    effects: effectsApplied || {},
+    statsAfter: { ...statsAfter }
+  });
+}
+
+// ── AI RUN SUMMARY ───────────────────────────────────────────────────────────
+async function sendRunSummary(outcome) {
+  const panel   = document.getElementById('summaryPanel');
+  const textEl  = document.getElementById('summaryText');
+  const dot     = document.getElementById('sumDot');
+  const label   = document.getElementById('sumLabel');
+
+  panel.classList.add('visible');
+  textEl.className = 'summary-text loading';
+  textEl.textContent = 'Consulting the oracle…';
+  dot.classList.add('active');
+  label.textContent = 'Chronicle';
+
+  // Show name entry panel for score submission
+  const outcomeLabel = outcome.includes('surviv') ? 'survived' : 'died';
+  showNameEntry(state.step, state.gold, outcomeLabel);
+
+  const payload = {
+    outcome,                            // "died" | "survived" | "died (loan shark)"
+    totalSteps:  state.step,
+    finalStats: {
+      hp:       state.hp,
+      maxHp:    state.maxHp,
+      strength: state.strength,
+      wisdom:   state.wisdom,
+      luck:     state.luck,
+      gold:     state.gold
+    },
+    events: walkHistory                 // full array — every step
+  };
+
+  try {
+    const res = await fetch(
+      'https://erma-pseudosyphilitic-unwonderfully.ngrok-free.dev/webhook/getSummary/',
+      {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '1'
+        },
+        body: JSON.stringify(payload)
+      }
+    );
+    const data = await res.json();
+    // Handle array format [{ text: "..." }] or object { summary/text/narrative } or plain string
+    let text;
+    if (Array.isArray(data)) {
+      text = data[0]?.text || data[0]?.summary || data[0]?.narrative || JSON.stringify(data[0]);
+    } else if (typeof data === 'string') {
+      text = data;
+    } else {
+      text = data.summary || data.text || data.narrative || JSON.stringify(data);
+    }
+    dot.classList.remove('active');
+    textEl.className = 'summary-text';
+    textEl.textContent = text;
+  } catch (err) {
+    dot.classList.remove('active');
+    textEl.className = 'summary-text error';
+    textEl.textContent = '⚠ The oracle is silent. (Could not reach summary endpoint.)';
+    console.error('Summary POST failed:', err);
+  }
+}
+
+// ── SCORE SUBMISSION ──────────────────────────────────────────────────────────
+let _pendingScore = null; // { steps, gold, outcome }
+
+function showNameEntry(steps, gold, outcome) {
+  _pendingScore = { steps, gold, outcome };
+  const panel = document.getElementById('nameEntry');
+  panel.classList.add('visible');
+  document.getElementById('nameInput').value = '';
+  document.getElementById('nameStatus').textContent = '';
+  document.getElementById('nameStatus').className = 'name-status';
+  document.getElementById('btnSubmitScore').disabled = false;
+  // pre-fill from last used name
+  try {
+    const saved = localStorage.getItem('om_player_name');
+    if (saved) document.getElementById('nameInput').value = saved;
+  } catch(e) {}
+}
+
+async function submitScore() {
+  const nameEl   = document.getElementById('nameInput');
+  const statusEl = document.getElementById('nameStatus');
+  const btn      = document.getElementById('btnSubmitScore');
+  const name     = nameEl.value.trim();
+
+  if (!name) {
+    statusEl.textContent = 'Please enter a name.';
+    statusEl.className   = 'name-status error';
+    nameEl.focus();
+    return;
+  }
+  if (!_pendingScore) return;
+
+  btn.disabled = true;
+  statusEl.textContent = 'Submitting…';
+  statusEl.className   = 'name-status';
+
+  // save name for next time
+  try { localStorage.setItem('om_player_name', name); } catch(e) {}
+
+  const payload = {
+    name,
+    steps:   _pendingScore.steps,
+    gold:    _pendingScore.gold,
+    outcome: _pendingScore.outcome
+  };
+
+  try {
+    const res = await fetch(
+      'https://erma-pseudosyphilitic-unwonderfully.ngrok-free.dev/webhook/saveScore/',
+      {
+        method:  'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': '1'
+        },
+        body: JSON.stringify(payload)
+      }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    statusEl.textContent = '✓ Score saved!';
+    statusEl.className   = 'name-status ok';
+    btn.disabled = true;
+    // refresh leaderboard after short delay
+    setTimeout(loadLeaderboard, 600);
+  } catch (err) {
+    statusEl.textContent = '⚠ Could not save score. Try again.';
+    statusEl.className   = 'name-status error';
+    btn.disabled = false;
+    console.error('saveScore failed:', err);
+  }
+}
+
+// ── LEADERBOARD ───────────────────────────────────────────────────────────────
+async function loadLeaderboard() {
+  const rowsEl = document.getElementById('leaderboardRows');
+  rowsEl.innerHTML = '<div class="lb-loading">Loading…</div>';
+  try {
+    const res  = await fetch(
+      'https://erma-pseudosyphilitic-unwonderfully.ngrok-free.dev/webhook/getLeaderboard',
+      { headers: { 'ngrok-skip-browser-warning': '1' } }
+    );
+    const data = await res.json();
+    const rows = Array.isArray(data) ? data
+               : data.leaderboard ?? data.data ?? data.entries ?? [];
+
+    if (!rows.length) {
+      rowsEl.innerHTML = '<div class="lb-empty">No scores yet — be the first!</div>';
+      return;
+    }
+
+    const top5 = rows.slice(0, 5);
+
+    rowsEl.innerHTML = top5.map((entry, i) => {
+      const rank    = i + 1;
+      const rankCls = rank === 1 ? 'lb-rank top' : 'lb-rank';
+      const rankStr = rank === 1 ? '🏆' : `#${rank}`;
+      const name    = (entry.name || 'Unknown').slice(0, 20);
+      const steps   = Number(entry.steps) || 0;
+      const gold    = Number(entry.gold)  || 0;
+      return `<div class="lb-row">
+        <span class="${rankCls}">${rankStr}</span>
+        <span class="lb-name">${name}</span>
+        <span class="lb-steps">${steps} steps</span>
+        <span class="lb-gold">${gold}g</span>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    rowsEl.innerHTML = '<div class="lb-empty" style="color:var(--blood-l)">⚠ Could not load leaderboard.</div>';
+    console.error('getLeaderboard failed:', err);
+  }
+}
+
+// ── GAME ACTIONS ─────────────────────────────────────────────────────────────
+function walk() {
+  if (gameOver) return;
+  if (!eventsReady) return;
+
+  // disable buttons during delay
+  const btnWalk = document.getElementById('btnWalk');
+  const btnEnd  = document.getElementById('btnEnd');
+  if (btnWalk) btnWalk.disabled = true;
+  if (btnEnd)  btnEnd.disabled  = true;
+
+  setTimeout(() => {
+    if (btnWalk) btnWalk.disabled = false;
+    if (btnEnd)  btnEnd.disabled  = false;
+    _doWalk();
+  }, 500);
+}
+
+function _doWalk() {
+  if (gameOver) return;
+  state.step++;
+
+  const ev = pickEvent(state.step);
+  const rawEff = ev.effects || {};
+
+  if (ev.isDeath) {
+    pushHistory(ev, {}, { hp:0, maxHp:state.maxHp, strength:state.strength, wisdom:state.wisdom, luck:state.luck, gold:state.gold });
+    renderEvent(ev, true);
+    document.getElementById('eventTitle').textContent = ev.title;
+    document.getElementById('eventDesc').textContent  = ev.desc;
+    document.getElementById('eventEffect').innerHTML  = '<span class="effect-bad">You died. Everything is lost.</span>';
+    renderStats();
+    saveRecords('Died');
+    showRestartButton();
+    sendRunSummary('died');
+    return;
+  }
+
+  if (ev.isShop) {
+    pushHistory(ev, {}, { hp:state.hp, maxHp:state.maxHp, strength:state.strength, wisdom:state.wisdom, luck:state.luck, gold:state.gold });
+    renderEvent(ev, false, false, {});
+    addLog(ev.title, {});
+    renderStats();
+    openShopOverlay();
+    return;
+  }
+
+  // Apply stat scaling to effects
+  const eff = applyStatScaling(rawEff);
+
+  // apply effects
+  state.hp       = Math.min(state.maxHp, state.hp + (eff.hp||0));
+  state.gold     += (eff.gold||0);
+  state.strength += (eff.strength||0);
+  state.wisdom   += (eff.wisdom||0);
+  state.luck     += (eff.luck||0);
+
+  pushHistory(ev, eff, { hp:state.hp, maxHp:state.maxHp, strength:state.strength, wisdom:state.wisdom, luck:state.luck, gold:state.gold });
+
+  // death by damage
+  if (state.hp <= 0) {
+    state.hp = 0;
+    gameOver = true;
+    document.getElementById('eventTitle').textContent = ev.title;
+    document.getElementById('eventDesc').textContent  = ev.desc + ' You fell and did not rise.';
+    document.getElementById('eventEffect').innerHTML  = '<span class="effect-bad">Fatal. Everything is lost.</span>';
+    document.getElementById('eventBox').className = 'event-box dead';
+    renderStats();
+    saveRecords('Died');
+    showRestartButton();
+    sendRunSummary('died');
+    return;
+  }
+
+  renderEvent(ev, false, false, eff);
+  addLog(ev.title, eff);
+  renderStats();
+}
+
+function endAdventure() {
+  if (gameOver) return;
+  gameOver = true;
+
+  document.getElementById('eventBox').className = 'event-box win';
+  document.getElementById('eventRarity').textContent = '';
+  document.getElementById('eventTitle').textContent = 'Adventure Complete';
+  document.getElementById('eventDesc').textContent  =
+    `Steps: ${state.step}  ·  Gold: ${state.gold}  ·  STR: ${state.strength}`;
+  document.getElementById('eventEffect').innerHTML = '<span class="effect-good">You survived.</span>';
+
+  saveRecords('Survived');
+  showRestartButton();
+  sendRunSummary('survived');
+}
+
+function restart() {
+  initState();
+  renderStats();
+  document.getElementById('eventBox').className = 'event-box';
+  document.getElementById('eventRarity').textContent = '—';
+  document.getElementById('eventTitle').textContent  = 'The road awaits.';
+  document.getElementById('eventDesc').textContent   = 'Every step may bring fortune. Or death.';
+  document.getElementById('eventEffect').innerHTML   = '';
+
+  const btns = document.getElementById('buttonRow');
+  btns.style.display = '';
+  btns.innerHTML = `
+    <button class="btn btn-walk" id="btnWalk" onclick="walk()">Walk</button>
+    <button class="btn btn-end"  id="btnEnd"  onclick="endAdventure()">End Adventure</button>
+  `;
+  document.getElementById('loadStatus').style.display = 'none';
+
+  // Hide name entry panel
+  document.getElementById('nameEntry').classList.remove('visible');
+  _pendingScore = null;
+
+  log = [];
+  renderLog();
+}
+
+
+function openShopOverlay() {
+  pendingShop = true;
+  document.getElementById('shopGoldDisplay').textContent = `Your gold: ${state.gold}`;
+  const itemsEl = document.getElementById('shopItems');
+  itemsEl.innerHTML = SHOP.map(item => {
+    const canAfford = item.free || state.gold >= item.cost;
+    const disabledClass = canAfford ? '' : 'shop-item-disabled';
+    const costLabel = item.free
+      ? `<span class="shop-item-cost free">free</span>`
+      : `<span class="shop-item-cost">${item.cost}g</span>`;
+    return `
+      <div class="shop-item ${disabledClass}" onclick="buyShopItem('${item.stat}')">
+        <span class="shop-item-icon">${item.icon}</span>
+        <span class="shop-item-info">
+          <div class="shop-item-label">${item.label}</div>
+          <div class="shop-item-desc">${item.desc}</div>
+        </span>
+        ${costLabel}
+      </div>`;
+  }).join('');
+  document.getElementById('shopOverlay').classList.add('open');
+}
+
+function closeShopOverlay() {
+  document.getElementById('shopOverlay').classList.remove('open');
+  // Record milestone so shop won't fire again until the next 30g increment
+  state.lastShopMilestone = Math.floor(state.gold / 30);
+  pendingShop = false;
+}
+
+function buyShopItem(stat) {
+  const item = SHOP.find(s => s.stat === stat);
+  if (!item) return;
+  if (!item.free && state.gold < item.cost) return;
+
+  if (!item.free) state.gold -= item.cost;
+
+  if (stat === 'hp') {
+    state.maxHp += 20;
+    state.hp = state.maxHp;
+    pushHistory(
+      { rarity:'shop', title:'Shop — Fortify Body', desc:'+20 Max HP, restored to new max' },
+      { hp: 20, gold: -item.cost },
+      { hp:state.hp, maxHp:state.maxHp, strength:state.strength, wisdom:state.wisdom, luck:state.luck, gold:state.gold }
+    );
+  } else if (stat === 'strength') {
+    state.strength += 2;
+    pushHistory(
+      { rarity:'shop', title:'Shop — Temper Blade', desc:'+2 STR' },
+      { strength: 2, gold: -item.cost },
+      { hp:state.hp, maxHp:state.maxHp, strength:state.strength, wisdom:state.wisdom, luck:state.luck, gold:state.gold }
+    );
+  } else if (stat === 'wisdom') {
+    state.wisdom += 2;
+    pushHistory(
+      { rarity:'shop', title:'Shop — Study Grimoire', desc:'+2 WIS' },
+      { wisdom: 2, gold: -item.cost },
+      { hp:state.hp, maxHp:state.maxHp, strength:state.strength, wisdom:state.wisdom, luck:state.luck, gold:state.gold }
+    );
+  } else if (stat === 'luck') {
+    state.luck += 2;
+    pushHistory(
+      { rarity:'shop', title:'Shop — Lucky Charm', desc:'+2 LUCK' },
+      { luck: 2, gold: -item.cost },
+      { hp:state.hp, maxHp:state.maxHp, strength:state.strength, wisdom:state.wisdom, luck:state.luck, gold:state.gold }
+    );
+  } else if (stat === 'gold') {
+    state.gold += 60;
+    // Loan Shark consequences
+    const roll = Math.random();
+    if (roll < 0.01) {
+      // 1% — instant death
+      state.hp = 0;
+      pushHistory(
+        { rarity:'shop', title:'Loan Shark — Debt Collector', desc:'The shark\'s men were waiting outside.' },
+        { gold: 60, hp: -999 },
+        { hp:0, maxHp:state.maxHp, strength:state.strength, wisdom:state.wisdom, luck:state.luck, gold:state.gold }
+      );
+      closeShopOverlay();
+      gameOver = true;
+      document.getElementById('eventBox').className = 'event-box dead';
+      document.getElementById('eventRarity').textContent = '';
+      document.getElementById('eventTitle').textContent = 'Debt Collector';
+      document.getElementById('eventDesc').textContent  = 'The shark\'s men were waiting outside. You never made it back to the road.';
+      document.getElementById('eventEffect').innerHTML  = '<span class="effect-bad">Instant death. The debt is paid in blood.</span>';
+      renderStats();
+      saveRecords('Died (Loan Shark)');
+      showRestartButton();
+      sendRunSummary('died (loan shark — instant)');
+      return;
+    } else if (roll < 0.26) {
+      // 25% — -3 WIS, -3 STR, -3 LUK
+      state.wisdom   = Math.max(0, state.wisdom   - 3);
+      state.strength = Math.max(0, state.strength - 3);
+      state.luck     = Math.max(0, state.luck     - 3);
+      pushHistory(
+        { rarity:'shop', title:'Loan Shark — Cursed Deal', desc:'-3 STR, -3 WIS, -3 LUK' },
+        { gold: 60, strength: -3, wisdom: -3, luck: -3 },
+        { hp:state.hp, maxHp:state.maxHp, strength:state.strength, wisdom:state.wisdom, luck:state.luck, gold:state.gold }
+      );
+      addLog('Loan Shark (cursed)', { wisdom:-3, strength:-3, luck:-3 });
+    } else if (roll < 0.50) {
+      // 24% — -25 HP
+      state.hp = Math.max(0, state.hp - 25);
+      pushHistory(
+        { rarity:'shop', title:'Loan Shark — Roughed Up', desc:'-25 HP' },
+        { gold: 60, hp: -25 },
+        { hp:state.hp, maxHp:state.maxHp, strength:state.strength, wisdom:state.wisdom, luck:state.luck, gold:state.gold }
+      );
+      addLog('Loan Shark (roughed up)', { hp:-25 });
+      if (state.hp <= 0) {
+        closeShopOverlay();
+        gameOver = true;
+        document.getElementById('eventBox').className = 'event-box dead';
+        document.getElementById('eventRarity').textContent = '';
+        document.getElementById('eventTitle').textContent = 'Loan Shark';
+        document.getElementById('eventDesc').textContent  = 'The interest was more than you could afford.';
+        document.getElementById('eventEffect').innerHTML  = '<span class="effect-bad">Fatal. Everything is lost.</span>';
+        renderStats();
+        saveRecords('Died (Loan Shark)');
+        showRestartButton();
+        sendRunSummary('died (loan shark — roughed up)');
+        return;
+      }
+    } else {
+      // 50% — safe, no consequence
+      pushHistory(
+        { rarity:'shop', title:'Loan Shark — Clean Deal', desc:'+60 Gold, no consequence' },
+        { gold: 60 },
+        { hp:state.hp, maxHp:state.maxHp, strength:state.strength, wisdom:state.wisdom, luck:state.luck, gold:state.gold }
+      );
+      addLog('Loan Shark (got away clean)', { gold:60 });
+    }
+  }
+
+  renderStats();
+  // Refresh shop display so gold and affordability update
+  document.getElementById('shopGoldDisplay').textContent = `Your gold: ${state.gold}`;
+  openShopOverlay();
+}
+
+function showRestartButton() {
+  const btns = document.getElementById('buttonRow');
+  btns.innerHTML = `<button class="btn btn-restart" id="btnRestart" onclick="restart()" disabled>Begin Again (3)</button>`;
+  let remaining = 3;
+  const iv = setInterval(() => {
+    remaining--;
+    const btn = document.getElementById('btnRestart');
+    if (!btn) { clearInterval(iv); return; }
+    if (remaining <= 0) {
+      clearInterval(iv);
+      btn.disabled = false;
+      btn.textContent = 'Begin Again';
+    } else {
+      btn.textContent = `Begin Again (${remaining})`;
+    }
+  }, 833);
+}
+
+// ── EXPOSE GLOBALS (so inline onclick handlers always find them) ──────────────
+window.walk              = walk;
+window._doWalk           = _doWalk;
+window.endAdventure      = endAdventure;
+window.restart           = restart;
+window.buyShopItem       = buyShopItem;
+window.closeShopOverlay  = closeShopOverlay;
+window.sendRunSummary    = sendRunSummary;
+window.submitScore       = submitScore;
+window.loadLeaderboard   = loadLeaderboard;
+
+// ── BOOT ─────────────────────────────────────────────────────────────────────
+initState();
+renderStats();
+renderLog();
+renderRecords();
+loadEvents();
+loadLeaderboard();
+</script>
+
+<!-- ── PWA: SERVICE WORKER + INSTALL PROMPT ──────────────────────────────── -->
+<div id="installBanner" style="
+  display:none; position:fixed; bottom:0; left:0; right:0; z-index:200;
+  background:#1A1712; border-top:1px solid #2E2A25;
+  padding:.85rem 1.25rem; display:none;
+  align-items:center; justify-content:space-between; gap:1rem;
+  font-family:'IBM Plex Mono',monospace; font-size:.72rem; color:#C8C4BC;
+">
+  <span>⚔️ Add <strong style="color:#C9A84C">One More</strong> to your home screen</span>
+  <div style="display:flex;gap:.5rem;flex-shrink:0">
+    <button onclick="doInstall()" style="
+      font-family:'Cinzel',serif; font-size:.68rem; letter-spacing:.1em;
+      padding:.45rem .8rem; border:1px solid #C9A84C; color:#C9A84C;
+      background:transparent; cursor:pointer; text-transform:uppercase;
+    ">Install</button>
+    <button onclick="dismissInstall()" style="
+      font-family:'Cinzel',serif; font-size:.68rem; letter-spacing:.1em;
+      padding:.45rem .8rem; border:1px solid #3A3530; color:#6B6560;
+      background:transparent; cursor:pointer; text-transform:uppercase;
+    ">Later</button>
+  </div>
+</div>
+
+<script>
+// ── INSTALL PROMPT ────────────────────────────────────────────────────────────
+let _deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _deferredPrompt = e;
+  // Don't show if user dismissed before
+  if (!localStorage.getItem('om_install_dismissed')) {
+    document.getElementById('installBanner').style.display = 'flex';
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  document.getElementById('installBanner').style.display = 'none';
+  _deferredPrompt = null;
+});
+
+function doInstall() {
+  if (!_deferredPrompt) return;
+  _deferredPrompt.prompt();
+  _deferredPrompt.userChoice.then(choice => {
+    document.getElementById('installBanner').style.display = 'none';
+    _deferredPrompt = null;
+  });
+}
+
+function dismissInstall() {
+  document.getElementById('installBanner').style.display = 'none';
+  try { localStorage.setItem('om_install_dismissed', '1'); } catch(e) {}
+}
+
+window.doInstall      = doInstall;
+window.dismissInstall = dismissInstall;
+</script>
+</body>
+</html>
