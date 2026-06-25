@@ -1,122 +1,197 @@
-One More
+# ONE MORE STEP
 
-A minimalist push-your-luck RPG where every step could be your last.
-
-What is One More?
-
-One More is a browser-based adventure game built around a single question:
-
-«Do you take one more step?»
-
-Each step triggers a random event. You might find treasure, gain strength, encounter a traveling merchant, suffer a terrible curse, or die instantly.
-
-The only decision that truly matters is whether to continue your journey or end your adventure while you're still alive.
-
-The longer you survive, the greater your rewards become—but so does the risk.
-
-Core Gameplay
-
-1. Press Walk
-2. Resolve a random event
-3. Decide:
-   - Walk again
-   - End your adventure and secure your score
-
-That's it.
-
-No quests.
-No maps.
-No inventory management.
-No permanent progression.
-
-Just greed versus survival.
-
-Features
-
-- Randomized event system
-- Multiple event rarities
-  - Common
-  - Rare
-  - Legendary
-- Character stats
-  - Health
-  - Strength
-  - Wisdom
-  - Luck
-- Traveling merchant encounters
-- Gold economy
-- Online leaderboard
-- Run history and summaries
-- Instant restart system
-
-The Philosophy
-
-Most RPGs are about long-term progression.
-
-One More is about tension.
-
-Every run starts from nothing.
-
-There are no permanent upgrades, unlock trees, battle passes, or account progression systems. Your success depends entirely on the decisions you make during the current run.
-
-The goal is to create the feeling of saying:
-
-«"Just one more step."»
-
-And then immediately regretting it.
-
-How Scoring Works
-
-A successful run is determined by how far you travel and what you achieve along the way.
-
-Players can choose to retire at any time.
-
-Greedy players may climb higher on the leaderboard.
-
-They may also die with everything.
-
-Event Generation
-
-Events are loaded dynamically from a remote event database, allowing new encounters to be added without updating the game client.
-
-This enables:
-
-- Fresh content
-- Seasonal events
-- Daily encounters
-- Community-driven expansions
-- AI-generated event pools
-
-Inspiration
-
-One More takes inspiration from:
-
-- Push-your-luck board games
-- Roguelikes
-- Incremental games
-- Gambling psychology
-- Text adventures
-
-while reducing everything down to a single recurring decision:
-
-«Continue, or walk away?»
-
-Future Ideas
-
-- Daily legendary events
-- Relics and artifacts
-- Story event chains
-- Special world themes
-- Death encyclopedia
-- Seasonal adventures
-- Community event submissions
-
-License
-
-MIT License
+> *The road never ends.*
+>
+> *Only the traveler does.*
 
 ---
 
-"Fortune favors the brave.
+## What Lies Beyond The Next Step?
 
-The graveyard favors everyone else."
+A distant glimmer.
+
+A forgotten shrine.
+
+A chest overflowing with gold.
+
+A wandering merchant.
+
+A hungry beast.
+
+A shallow grave.
+
+You don't know.
+
+You can never know.
+
+All you can do is take **one more step**.
+
+---
+
+## The Premise
+
+You stand at the edge of an endless road.
+
+No kingdom awaits saving.
+
+No prophecy calls your name.
+
+No hero's destiny protects you.
+
+There is only the path ahead.
+
+With every step, fate casts its dice.
+
+Fortune and disaster walk side by side.
+
+Will you leave with riches?
+
+Or will your bones become another warning along the roadside?
+
+---
+
+## One Decision. Forever Repeated.
+
+The rules are simple.
+
+### Walk.
+
+Or
+
+### Stop.
+
+That is all.
+
+Every step reveals a new encounter.
+
+A blessing.
+
+A curse.
+
+A miracle.
+
+A death sentence.
+
+And after every encounter, the question returns:
+
+> **Do you risk one more step?**
+
+---
+
+## Greed Is The Real Enemy
+
+You will survive.
+
+Until you don't.
+
+You will find treasure.
+
+Until you lose everything.
+
+You will tell yourself:
+
+> "Just one more."
+
+Then again.
+
+And again.
+
+And again.
+
+Most adventurers do not die because they were weak.
+
+They die because they believed they could survive one more step.
+
+---
+
+## Features
+
+- Endless randomized adventures
+- Dynamic event generation
+- Rare and legendary encounters
+- Character-building through luck, wisdom, and strength
+- Traveling merchants and dangerous bargains
+- Online leaderboards
+- Run history and records
+- Permanent tension
+- No permanent progression
+
+Every run begins equally.
+
+Every run ends differently.
+
+---
+
+## No Grinding
+
+No battle pass.
+
+No daily chores.
+
+No account level.
+
+No talent trees.
+
+No endless unlocks.
+
+Your next run is worth exactly as much as your first.
+
+The only thing that changes is your willingness to risk everything.
+
+---
+
+## The Road Remembers
+
+Some travelers became legends.
+
+Some became corpses.
+
+Some vanished without a trace.
+
+Their stories live on in the Hall of Fame.
+
+Will yours?
+
+---
+
+## Every Step Has A Cost
+
+The road offers gifts.
+
+The road offers power.
+
+The road offers hope.
+
+The road offers lies.
+
+Every reward carries a hidden price.
+
+Every victory moves you one step closer to disaster.
+
+The further you travel, the harder it becomes to turn back.
+
+---
+
+## One More Step
+
+Not because it's safe.
+
+Not because it's smart.
+
+Not because it's worth it.
+
+Because you have to know what's next.
+
+And that curiosity will eventually kill you.
+
+---
+
+### Take the step.
+
+### Face your fate.
+
+### See how far greed can carry you.
+
+# ONE MORE STEP
+
+*One Step. Countless Fates.*
